@@ -6,17 +6,23 @@ import '../services/pokemon_service.dart';
 class DetallesPokemon extends StatefulWidget {
   final String pokemonName;
 
-  const DetallesPokemon({super.key, required this.pokemonName});
+  const DetallesPokemon({
+    super.key,
+    required this.pokemonName,
+  });
 
   @override
   State<DetallesPokemon> createState() => _DetallesPokemonState();
 }
 
 class _DetallesPokemonState extends State<DetallesPokemon> {
+
   final PokemonService service = PokemonService();
 
   Pokemon? pokemon;
+
   bool cargando = true;
+
   String? error;
 
   @override
@@ -26,14 +32,19 @@ class _DetallesPokemonState extends State<DetallesPokemon> {
   }
 
   Future<void> cargarPokemon() async {
+
     try {
-      final resultado = await service.fetchPokemon(widget.pokemonName);
+
+      final resultado =
+          await service.fetchPokemon(widget.pokemonName);
 
       setState(() {
         pokemon = resultado;
         cargando = false;
       });
+
     } catch (e) {
+
       setState(() {
         error = 'No se pudo cargar el Pokémon';
         cargando = false;
@@ -43,29 +54,53 @@ class _DetallesPokemonState extends State<DetallesPokemon> {
 
   @override
   Widget build(BuildContext context) {
+
     if (cargando) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
 
-    if (error != null) {
+    if (error != null || pokemon == null) {
+
       return Scaffold(
-        appBar: AppBar(title: const Text('Error')),
-        body: Center(child: Text(error!)),
+
+        appBar: AppBar(
+          title: const Text('Error'),
+        ),
+
+        body: Center(
+          child: Text(error ?? 'Pokémon no encontrado'),
+        ),
       );
     }
 
     return Scaffold(
+
       appBar: AppBar(
-        title: Text(pokemon!.name.toUpperCase()),
+        title: Text(
+          pokemon!.name.toUpperCase(),
+        ),
         centerTitle: true,
       ),
+
       body: SingleChildScrollView(
+
         padding: const EdgeInsets.all(16),
+
         child: Column(
+
           children: [
+
             Text(
               '#${pokemon!.id}',
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+              ),
             ),
 
             const SizedBox(height: 20),
@@ -73,8 +108,14 @@ class _DetallesPokemonState extends State<DetallesPokemon> {
             Image.network(
               pokemon!.imageUrl,
               height: 230,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.image_not_supported, size: 120);
+
+              errorBuilder:
+                  (context, error, stackTrace) {
+
+                return const Icon(
+                  Icons.image_not_supported,
+                  size: 120,
+                );
               },
             ),
 
@@ -82,13 +123,36 @@ class _DetallesPokemonState extends State<DetallesPokemon> {
 
             Text(
               pokemon!.name.toUpperCase(),
-              style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold),
+
+              style: const TextStyle(
+                fontSize: 34,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Wrap(
+              spacing: 10,
+
+              children:
+                  pokemon!.types.map((type) {
+
+                return Chip(
+                  label: Text(
+                    type.toUpperCase(),
+                  ),
+                );
+
+              }).toList(),
             ),
 
             const SizedBox(height: 30),
 
             Row(
+
               children: [
+
                 Expanded(
                   child: _InfoCard(
                     titulo: 'Altura',
@@ -96,7 +160,9 @@ class _DetallesPokemonState extends State<DetallesPokemon> {
                     icono: Icons.height,
                   ),
                 ),
+
                 const SizedBox(width: 12),
+
                 Expanded(
                   child: _InfoCard(
                     titulo: 'Peso',
@@ -114,6 +180,7 @@ class _DetallesPokemonState extends State<DetallesPokemon> {
 }
 
 class _InfoCard extends StatelessWidget {
+
   final String titulo;
   final String valor;
   final IconData icono;
@@ -126,15 +193,37 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Card(
+
       child: Padding(
+
         padding: const EdgeInsets.all(18),
+
         child: Column(
+
           children: [
-            Icon(icono, size: 34),
+
+            Icon(
+              icono,
+              size: 34,
+            ),
+
             const SizedBox(height: 8),
-            Text(titulo, style: const TextStyle(fontWeight: FontWeight.bold)),
-            Text(valor, style: const TextStyle(fontSize: 22)),
+
+            Text(
+              titulo,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            Text(
+              valor,
+              style: const TextStyle(
+                fontSize: 22,
+              ),
+            ),
           ],
         ),
       ),
