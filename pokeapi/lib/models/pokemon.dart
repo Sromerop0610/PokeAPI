@@ -24,9 +24,8 @@ class Pokemon {
       imageUrl: json['sprites']['front_default'],
       height: json['height'],
       weight: json['weight'],
-
       types: (json['types'] as List)
-          .map((type) => type['type']['name'] as String)
+          .map((t) => t['type']['name'] as String)
           .toList(),
     );
   }

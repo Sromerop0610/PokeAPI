@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../models/pokemon.dart';
 import '../services/pokemon_service.dart';
+import '../services/team_service.dart';
 
 class DetallesPokemon extends StatefulWidget {
+
   final String pokemonName;
 
   const DetallesPokemon({
@@ -12,7 +14,8 @@ class DetallesPokemon extends StatefulWidget {
   });
 
   @override
-  State<DetallesPokemon> createState() => _DetallesPokemonState();
+  State<DetallesPokemon> createState() =>
+      _DetallesPokemonState();
 }
 
 class _DetallesPokemonState extends State<DetallesPokemon> {
@@ -22,7 +25,6 @@ class _DetallesPokemonState extends State<DetallesPokemon> {
   Pokemon? pokemon;
 
   bool cargando = true;
-
   String? error;
 
   @override
@@ -33,58 +35,34 @@ class _DetallesPokemonState extends State<DetallesPokemon> {
 
   Future<void> cargarPokemon() async {
 
-    try {
+    final resultado =
+        await service.fetchPokemon(widget.pokemonName);
 
-      final resultado =
-          await service.fetchPokemon(widget.pokemonName);
-
-      setState(() {
-        pokemon = resultado;
-        cargando = false;
-      });
-
-    } catch (e) {
-
-      setState(() {
-        error = 'No se pudo cargar el Pokémon';
-        cargando = false;
-      });
-    }
+    setState(() {
+      pokemon = resultado;
+      cargando = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
 
     if (cargando) {
-
       return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    if (error != null || pokemon == null) {
-
-      return Scaffold(
-
-        appBar: AppBar(
-          title: const Text('Error'),
-        ),
-
-        body: Center(
-          child: Text(error ?? 'Pokémon no encontrado'),
-        ),
+    if (pokemon == null) {
+      return const Scaffold(
+        body: Center(child: Text("Error Pokémon")),
       );
     }
 
     return Scaffold(
 
       appBar: AppBar(
-        title: Text(
-          pokemon!.name.toUpperCase(),
-        ),
-        centerTitle: true,
+        title: Text(pokemon!.name.toUpperCase()),
       ),
 
       body: SingleChildScrollView(
@@ -96,134 +74,52 @@ class _DetallesPokemonState extends State<DetallesPokemon> {
           children: [
 
             Text(
-              '#${pokemon!.id}',
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-              ),
+              "#${pokemon!.id}",
+              style: const TextStyle(fontSize: 26),
+            ),
+
+            Image.network(pokemon!.imageUrl, height: 200),
+
+            const SizedBox(height: 10),
+
+            Wrap(
+              spacing: 8,
+
+              children: pokemon!.types.map((t) {
+                return Chip(label: Text(t.toUpperCase()));
+              }).toList(),
             ),
 
             const SizedBox(height: 20),
 
-            Image.network(
-              pokemon!.imageUrl,
-              height: 230,
+            ElevatedButton.icon(
 
-              errorBuilder:
-                  (context, error, stackTrace) {
+              icon: const Icon(Icons.add),
 
-                return const Icon(
-                  Icons.image_not_supported,
-                  size: 120,
+              label: const Text("Añadir al equipo"),
+
+              onPressed: () {
+
+                final team = TeamService();
+
+                final ok = team.addPokemon(pokemon!);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      ok
+                          ? "Añadido al equipo"
+                          : "Equipo lleno o duplicado",
+                    ),
+                  ),
                 );
               },
             ),
 
             const SizedBox(height: 20),
 
-            Text(
-              pokemon!.name.toUpperCase(),
-
-              style: const TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            Wrap(
-              spacing: 10,
-
-              children:
-                  pokemon!.types.map((type) {
-
-                return Chip(
-                  label: Text(
-                    type.toUpperCase(),
-                  ),
-                );
-
-              }).toList(),
-            ),
-
-            const SizedBox(height: 30),
-
-            Row(
-
-              children: [
-
-                Expanded(
-                  child: _InfoCard(
-                    titulo: 'Altura',
-                    valor: '${pokemon!.height}',
-                    icono: Icons.height,
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                Expanded(
-                  child: _InfoCard(
-                    titulo: 'Peso',
-                    valor: '${pokemon!.weight}',
-                    icono: Icons.monitor_weight,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-
-  final String titulo;
-  final String valor;
-  final IconData icono;
-
-  const _InfoCard({
-    required this.titulo,
-    required this.valor,
-    required this.icono,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-
-    return Card(
-
-      child: Padding(
-
-        padding: const EdgeInsets.all(18),
-
-        child: Column(
-
-          children: [
-
-            Icon(
-              icono,
-              size: 34,
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              titulo,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            Text(
-              valor,
-              style: const TextStyle(
-                fontSize: 22,
-              ),
-            ),
+            Text("Altura: ${pokemon!.height}"),
+            Text("Peso: ${pokemon!.weight}"),
           ],
         ),
       ),
